@@ -317,31 +317,38 @@ sub doEMBL{
 	#my @ar=<F>;
 	my @ar;my $ok=1;
 	while(<F>){
-	  if (/^SQ/){
+          my $cur_line = $_;
+	  if ($cur_line =~ /^SQ/){
 		$ok=0
 	  } elsif ($ok) {
-	    $res.=$_
+
+            #temporary fix: strangely some join operations contained a single range
+            if ( $cur_line =~ /(.*)join\((\d+\.\.\d+)\)(.*)/ ) {
+                $cur_line = $1 . $2 . $3 . "\n";
+            }
+
+	    $res.=$cur_line
 	  }
 	}
 	close(F);
 #	$res.=join ('',@ar);
   }
 
-  
   ### mal hack: if contig is node, it will have the contigs tag in
   if ($fastapart =~ /NODE_/) {
 	$res.="FT   contig          1..$length\n";
 	my $col=(3+int(rand(10)));
 	$res.="FT                   /note=\"Contig: $resultName.\"\n";
-	$res.="FT                   /colour=$col\n";
-	  
+	$res.="FT                   /colour=$col\n";	  
   }
+
   $res.=$seq."//\n";
 
   open F, "> $resultName.embl" or die "Couldn't write $resultName.embl in doEMBL: $! \n";
   print F $res;
   close(F);
 }
+
 ########################
 ### fasta2EMBLfasta
 ########################

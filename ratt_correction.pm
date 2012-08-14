@@ -210,16 +210,22 @@ sub correctModel {
 	
     open( F, $emblFile )
       or die "Sorry, couldn't open annotation file $emblFile: $_\n";
-
     my @EMBL = <F>;
 
     my $pos = 0;
     my $res;
+    FEATURE: 
     foreach (@EMBL) {
 	  chomp;
+          
 	  if (/^FT   CDS\s{2,}(\S+)$/) {
 		my $isPseudo=checkPseudo(\@EMBL,$pos);
-		
+
+                #fix: temporary fix to skip features without start and end coordinates
+	        next FEATURE if ($_ =~ /complement\(\)/ );
+                #fix: temporary fix to skip features with negative start or end position
+                next FEATURE if ($_ =~ /(\-\d+\.\.\d+)|(\d+\.\.\-\d+)/ );
+
 		if (!($isPseudo) ||
 			($CORRECT_PSEUDO)) {
 		  
@@ -697,7 +703,7 @@ sub checkIntrons {
     return $ref_structure;
 }
 ####################
-### correctStart
+### printStructurePos
 ####################
 sub printStructurePos {
     my $ref_structure = shift;
@@ -737,7 +743,11 @@ sub correctStart {
         my $cds = buildGene( \@{ $$ref_structureN{pos} }, $sequence );
         $amountF = getAmountFrameshifts($cds);
         ( $minAll, $minAllpos ) = min( $amountF, $_, $minAll, $minAllpos );
-        $amountF = getAmountFrameshifts( substr( $cds, 0, 150 ) );
+        if (not $cds) {
+            $amountF = 0;    
+        } else {
+            $amountF = getAmountFrameshifts( substr( $cds, 0, 150 ) );
+        }
         ( $min150, $min150pos ) = min( $amountF, $_, $min150, $min150pos );
     }
 
@@ -2096,7 +2106,7 @@ sub checkFeaturePos{
 	  }
 	  if ($a1>$seqLength) {
 		
-		$a1=($b-3)
+                $a1=($b1-3); 
 	  }
 
 	  if ($b1<1) {
