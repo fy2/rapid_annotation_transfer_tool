@@ -308,7 +308,7 @@ sub doEMBL{
   
   my $res="ID                   $resultName ; ; ; ; ; $length BP.\n".
           "FH   Key             Location/Qualifiers\n".
-		  "FH                   \n";
+	  "FH                   \n";
 
   if (-f $emblPart) {
 	### if a file has no embl
@@ -331,19 +331,9 @@ sub doEMBL{
 	  }
 	}
 	close(F);
-#	$res.=join ('',@ar);
-  }
-
-  ### mal hack: if contig is node, it will have the contigs tag in
-  if ($fastapart =~ /NODE_/) {
-	$res.="FT   contig          1..$length\n";
-	my $col=(3+int(rand(10)));
-	$res.="FT                   /note=\"Contig: $resultName.\"\n";
-	$res.="FT                   /colour=$col\n";	  
   }
 
   $res.=$seq."//\n";
-
   open F, "> $resultName.embl" or die "Couldn't write $resultName.embl in doEMBL: $! \n";
   print F $res;
   close(F);
